@@ -1,0 +1,11 @@
+transformers
+numpy
+pandas
+loguru
+torch
+bertopic
+sentence-transformers
+datasets
+seaborn
+matplotlib
+openai
