@@ -31,11 +31,11 @@ from telegram.ext import (
 COMPANY_NAME = 0
 
 TOP_COMPANIES_KEYBOARD = [
-        ['Пятёрочка', 'Магнит', 'Красное&Белое'],
-        ['Wildberries', 'Ozon', 'Вкусно — и точка'],
-        ['Перекрёсток', 'Fix Price', 'Лукойл',],
-        ['СберБанк', 'Леруа Мерлен', 'Дикси']
-    ]
+    ["Пятёрочка", "Магнит", "Красное&Белое"],
+    ["Wildberries", "Ozon", "Вкусно — и точка"],
+    ["Перекрёсток", "Fix Price", "Лукойл"],
+    ["СберБанк", "Леруа Мерлен", "Дикси"],
+]
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -47,8 +47,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         Напишите название компании, отзывы на которую необходимо проанализировать. 
         Можно выбрать на клавиатуре или написать название самостоятельно.""",
         reply_markup=ReplyKeyboardMarkup(
-            TOP_COMPANIES_KEYBOARD, one_time_keyboard=True, input_field_placeholder="Напишите название компании",
-            resize_keyboard=True
+            TOP_COMPANIES_KEYBOARD,
+            one_time_keyboard=True,
+            input_field_placeholder="Напишите название компании",
+            resize_keyboard=True,
         ),
     )
 
@@ -77,8 +79,10 @@ async def company_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         """Теперь вы можете снова написать название компании, отзывы на которую необходимо проанализировать.
         Можно выбрать на клавиатуре или написать название самостоятельно.""",
         reply_markup=ReplyKeyboardMarkup(
-            TOP_COMPANIES_KEYBOARD, one_time_keyboard=True, input_field_placeholder="Напишите название компании:",
-            resize_keyboard=True
+            TOP_COMPANIES_KEYBOARD,
+            one_time_keyboard=True,
+            input_field_placeholder="Напишите название компании:",
+            resize_keyboard=True,
         ),
     )
 
@@ -106,7 +110,9 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            COMPANY_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, company_name)],
+            COMPANY_NAME: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, company_name)
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )

@@ -9,3 +9,5 @@ datasets
 seaborn
 matplotlib
 openai
+python-telegram-bot
+black

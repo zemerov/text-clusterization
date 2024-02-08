@@ -6,7 +6,7 @@ from loguru import logger
 
 class OpenAIAPIWrapper:
     def __init__(self, model: str = "gpt-3.5-turbo"):
-        self.client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.model = model
 
         logger.info(f"Set up OpenAI API wrapper for model {model}")
@@ -25,8 +25,12 @@ class OpenAIAPIWrapper:
 
         return prompt
 
-    def get_cluster_summary(self, all_comments: list[str], keywords: str, total_samples: int = 7):
-        comments = choice(all_comments, replace=False, size=min(total_samples, len(all_comments)))
+    def get_cluster_summary(
+        self, all_comments: list[str], keywords: str, total_samples: int = 7
+    ):
+        comments = choice(
+            all_comments, replace=False, size=min(total_samples, len(all_comments))
+        )
         prompt = self._construct_prompt(comments, keywords)
 
         logger.info(f"Sending request for the prompt:\n{prompt}")
@@ -34,7 +38,7 @@ class OpenAIAPIWrapper:
             model=self.model,
             messages=[
                 {"role": "user", "content": prompt},
-            ]
+            ],
         )
 
         answer = response.choices[0].message.content
@@ -43,6 +47,7 @@ class OpenAIAPIWrapper:
         logger.info(
             f"Total tokens: {response.usage.total_tokens};\
               Prompt tokens: {response.usage.prompt_tokens};\
-              Completion tokens: {response.usage.completion_tokens}")
+              Completion tokens: {response.usage.completion_tokens}"
+        )
 
         return answer

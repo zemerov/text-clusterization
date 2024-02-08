@@ -1,7 +1,12 @@
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+)
 import torch
 
-DEFAULT_SENTIMENT_CLASSIFIER = 'Tatyana/rubert-base-cased-sentiment-new'
+DEFAULT_SENTIMENT_CLASSIFIER = "Tatyana/rubert-base-cased-sentiment-new"
 
 
 class SentimentClassifier:
@@ -14,15 +19,18 @@ class SentimentClassifier:
     SENTIMENT_TO_ID = {v: k for k, v in ID_TO_SENTIMENT.items()}
 
     def __init__(
-            self,
-            model_name: str = DEFAULT_SENTIMENT_CLASSIFIER,
-            batch_size: int = 32, device: str = "cpu"
+        self,
+        model_name: str = DEFAULT_SENTIMENT_CLASSIFIER,
+        batch_size: int = 32,
+        device: torch.device | str = "cpu",
     ):
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model: PreTrainedModel = (
+            AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
+        )
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        self.batch_size = batch_size
-        self.device = device
+        self.batch_size: int = batch_size
+        self.device: torch.device | str = device
 
     @torch.inference_mode
     def predict_sentiment(self, texts: list[str]) -> tuple[list[str], list[float]]:
@@ -30,11 +38,13 @@ class SentimentClassifier:
         negative_scores = []
 
         for i in range(0, len(texts), self.batch_size):
-            texts_batch = texts[i:i + self.batch_size]
+            texts_batch = texts[i : i + self.batch_size]
 
             tokenized_batch = {
-                k: v.to(self.device) for k, v in self.tokenizer(
-                    texts_batch, return_tensors="pt", padding="longest", truncation=True).items()
+                k: v.to(self.device)
+                for k, v in self.tokenizer(
+                    texts_batch, return_tensors="pt", padding="longest", truncation=True
+                ).items()
             }
 
             predictions = self.model(**tokenized_batch).logits.argmax(dim=1)
@@ -46,5 +56,3 @@ class SentimentClassifier:
         sentiments = [self.ID_TO_SENTIMENT[x] for x in sentiments]
 
         return sentiments, negative_scores
-
-
