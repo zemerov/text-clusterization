@@ -5,6 +5,8 @@ from transformers import (
     PreTrainedTokenizer,
 )
 import torch
+from loguru import logger
+from tqdm.auto import tqdm
 
 DEFAULT_SENTIMENT_CLASSIFIER = "Tatyana/rubert-base-cased-sentiment-new"
 
@@ -32,22 +34,32 @@ class SentimentClassifier:
         self.batch_size: int = batch_size
         self.device: torch.device | str = device
 
+        logger.info(
+            f"Loaded sentiment classifier: {model_name}. Batch size: {batch_size}. Device: {device}"
+        )
+
     @torch.inference_mode
     def predict_sentiment(self, texts: list[str]) -> tuple[list[str], list[float]]:
         sentiments = []
         negative_scores = []
 
-        for i in range(0, len(texts), self.batch_size):
+        for i in tqdm(
+            range(0, len(texts), self.batch_size), desc="Calculating sentiment scores"
+        ):
             texts_batch = texts[i : i + self.batch_size]
 
             tokenized_batch = {
                 k: v.to(self.device)
                 for k, v in self.tokenizer(
-                    texts_batch, return_tensors="pt", padding="longest", truncation=True
+                    texts_batch,
+                    return_tensors="pt",
+                    padding="longest",
+                    truncation=True,
+                    max_length=512,
                 ).items()
             }
 
-            predictions = self.model(**tokenized_batch).logits.argmax(dim=1)
+            predictions = self.model(**tokenized_batch).logits
             negative_scores.append(predictions[:, self.SENTIMENT_TO_ID["NEGATIVE"]])
             sentiments.append(predictions.argmax(dim=1))
 

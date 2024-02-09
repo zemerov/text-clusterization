@@ -1,7 +1,10 @@
+import pandas as pd
+
 from loader import Loader
 from sentiment_classifier import SentimentClassifier
 from clusterizer import Clusterizer
 from openai_api_wrapper import OpenAIAPIWrapper
+from database_maker import DatabaseMaker
 
 from tqdm.auto import tqdm
 
@@ -13,32 +16,50 @@ class Manager:
         self.clusterizer = Clusterizer()
         self.api_wrapper = OpenAIAPIWrapper()
 
-    def get_report(self, rubric: str, company_name: str):
+        self.db_manager = DatabaseMaker()
+
+    def get_report(self, company_name: str):
         # TODO check for cached result in database
-        all_comments = self.loader.get_data(rubric, company_name)
-        company_comments = all_comments[all_comments["name_ru"] == company_name]
 
-        all_sentiments = self.sentiment_classifier.predict_sentiment(
-            all_comments["text"].tolist()
+        company_comments = self.loader.get_company_comments(company_name)
+
+        self._get_sentiment(company_comments["text"].tolist())
+        self._get_clusters(company_comments)
+
+        result = self._get_analytics()
+
+        return result
+
+    def _get_clusters(self, comments: pd.DataFrame):
+        topics, topics_info = self.clusterizer.predict_topics(comments["text"].tolist())
+
+        comments["topics"] = topics
+
+        cluster_summaries = self.api_wrapper.get_cluster_summaries(
+            topics, comments, topics_info
         )
-        topics, topics_info = self.clusterizer.predict_topics(
-            company_comments["text"].tolist()
-        )
 
-        company_comments["topics"] = topics
+        # TODO Save to db
 
-        cluster_summaries = []
+    def _get_sentiment(self, texts: list[str]) -> list[str]:
+        all_sentiments, _ = self.sentiment_classifier.predict_sentiment(texts)
 
-        for cluster_id in tqdm(
-            range(len(set(topics)) - 1), desc="Generating cluster summaries"
-        ):
-            cluster_comments = company_comments[
-                company_comments["topics"] == cluster_id
-            ]["text"].tolist()
-            cluster_summaries.append(
-                self.api_wrapper.get_cluster_summary(
-                    cluster_comments, topics_info[cluster_id]
-                )
-            )
+        # TODO Save to db
 
-        result = {}  # TODO define result
+        return all_sentiments
+
+    def _get_analytics(self):
+        # Load data from db
+        # Create analytics
+        # Save analytics (MAYBE)
+        # Return smth
+        return 2 + 2
+
+
+if __name__ == "__main__":
+    # Only for debugging
+    table_path = "data/geo-reviews-dataset-2023-full.jsonl"
+    name = "INVITRO"
+
+    manager = Manager(table_path)
+    manager.get_report(company_name=name)

@@ -1,4 +1,5 @@
 from bertopic import BERTopic
+from loguru import logger
 
 DEFAULT_ENCODER_PATH = "distiluse-base-multilingual-cased-v1"
 
@@ -14,8 +15,12 @@ class Clusterizer:
             calculate_probabilities=True,
         )
 
+        logger.info(f"Created topic model: {self.topic_model}")
+
     def predict_topics(self, texts: list[str]) -> (list[int], dict[int, str]):
+        logger.info(f"Predicting topics for {len(texts)} texts...")
         topics, _ = self.topic_model.fit_transform(texts)
+        logger.info(f"Predicted distinct topics: {len(set(topics))}")
 
         topic_info = self.topic_model.get_topic_info()[["Topic", "Name"]]
         topic_info.columns = ["topics", "keywords"]

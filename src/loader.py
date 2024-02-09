@@ -1,23 +1,33 @@
 import pandas as pd
+from loguru import logger
 
 
 class Loader:
+    COLUMN_TO_SUBJECT = {"rubrics": "rubrics", "name_ru": "company name"}
+
     def __init__(self, source_path: str, minimum_threshold: int = 10):
         self.data = pd.read_json(source_path, lines=True)
         self.minimum_threshold = minimum_threshold
 
-    def get_data(self, rubric: str, company_name: str) -> pd.DataFrame:
-        all_data = self.data[self.data["rubric"] == rubric]
-        # company_data = all_data[all_data["name_ru"] == company_name]
-        #
-        # all_data = {k: list(v) for k, v in all_data.items()}
-        # company_data = {k: list(v) for k, v in company_data.items()}
-        #
-        # if len(all_data) < self.minimum_threshold:
-        #     raise ValueError(f"Not enough comments for rubric: {rubric}. Please choose more common rubric.")
-        #
-        # if len(company_data) < self.minimum_threshold:
-        #     raise ValueError(
-        #         f"Not enough comments to analyze for company: {company_name}. Please choose another company")
+        logger.info(
+            f"Loaded dataframe from {source_path}. Dataset size: {len(self.data)}"
+        )
 
-        return all_data
+    def get_company_comments(self, company_name: str) -> pd.DataFrame:
+        return self._get_data_by_column(company_name, "name_ru")
+
+    def get_rubric_comments(self, rubric: str) -> pd.DataFrame:
+        return self._get_data_by_column(rubric, "rubrics")
+
+    def _get_data_by_column(self, value: str, col_name: str) -> pd.DataFrame:
+        data = self.data[self.data[col_name] == value]
+        name = Loader.COLUMN_TO_SUBJECT.get(col_name, None)
+
+        logger.info(f"Loaded {len(data)} samples for {name}: {value}")
+
+        if len(data) < self.minimum_threshold:
+            raise ValueError(
+                f"Not enough comments for rubric: {value}. Please choose more common {name}."
+            )
+
+        return data
