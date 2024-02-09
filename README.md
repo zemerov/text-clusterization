@@ -2,10 +2,6 @@
 
 **Master thesis project for MiBA GSOM `24.**
 
-@zemerov
-
-@AsvadKhadchukaev
-
 ## How to run Telegram bot
 
 Install requirements
