@@ -28,16 +28,22 @@ class Manager:
 
         return result
 
-    def _get_clusters(self, comments: pd.DataFrame):
+    def _get_clusters(self, comments: pd.DataFrame) -> pd.DataFrame:
+        
         topics, topics_info = self.clusterizer.predict_topics(comments["text"].tolist())
+        cluster_df = pd.DataFrame(columns=["cluster_id", "keywords", "description"])
+        for cluster_id in set(topics):
+            cluster_comments = comments[comments["topics"] == cluster_id]["text"].tolist()
+            cluster_summary = self.api_wrapper.get_cluster_summary(
+                cluster_comments, topics_info[cluster_id]
+            )
+            cluster_df = cluster_df.append({
+                "cluster_id": cluster_id,
+                "keywords": topics_info[cluster_id],
+                "description": cluster_summary
+            }, ignore_index=True)
 
-        comments["topics"] = topics
-
-        cluster_summaries: list[str] = self.api_wrapper.get_cluster_summaries(
-            topics, comments, topics_info
-        )
-
-        self.db_manager.save_clusters()
+        return cluster_df
 
     def _get_sentiment(self, texts: list[str]):
         all_sentiments, _ = self.sentiment_classifier.predict_sentiment(texts)

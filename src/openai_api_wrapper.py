@@ -55,9 +55,9 @@ class OpenAIAPIWrapper:
 
     def get_cluster_summaries(
         self, topics, comments, topics_info, parallel: int = 1
-    ) -> list[str]:
+    ) -> dict[int, str]:
         # TODO add parallel requests
-        cluster_summaries = []
+        cluster_summaries = {}
 
         for cluster_id in tqdm(
             range(len(set(topics)) - 1), desc="Generating cluster summaries"
@@ -66,8 +66,8 @@ class OpenAIAPIWrapper:
                 "text"
             ].tolist()
 
-            cluster_summaries.append(
-                self.get_cluster_summary(cluster_comments, topics_info[cluster_id])
+            cluster_summaries[cluster_id] = self.get_cluster_summary(
+                cluster_comments, topics_info[cluster_id]
             )
 
         return cluster_summaries

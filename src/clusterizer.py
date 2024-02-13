@@ -17,7 +17,7 @@ class Clusterizer:
 
         logger.info(f"Created topic model: {self.topic_model}")
 
-    def predict_topics(self, texts: list[str]) -> (list[int], dict[int, str]):
+    def predict_topics(self, texts: list[str]) -> (list[int], dict[int, str], dict[str, int]):
         logger.info(f"Predicting topics for {len(texts)} texts...")
         topics, _ = self.topic_model.fit_transform(texts)
         logger.info(f"Predicted distinct topics: {len(set(topics))}")
@@ -33,4 +33,8 @@ class Clusterizer:
             for topic_id, keywords in zip(topic_info["topics"], topic_info["keywords"])
         }
 
-        return topics, topic_info
+        # Создание словаря для привязки текстов к кластерам
+        text_cluster_mapping = {text: topic for text, topic in zip(texts, topics)}
+
+        return topics, topic_info, text_cluster_mapping
+
