@@ -4,9 +4,11 @@ import json
 from loguru import logger
 
 
+DEFAULT_DATABASE_PATH = "data/database.db"
+
+
 class DatabaseManager:
-    def __init__(self, db_name: str = "data/database.db", queries_file: str = "resources/queries.sql"):
-        # TODO Сделать создание и наполнение таблиц в отдельном скрипте. Таблицы создавать через явные SQL запросы, не через
+    def __init__(self, db_name: str = DEFAULT_DATABASE_PATH, queries_file: str = "resources/queries.json"):
         self.db_name: str = db_name
 
         with open(queries_file, "r") as file:
@@ -45,14 +47,6 @@ class DatabaseManager:
         # TODO execute query for getting data
 
         return None
-
-    def _create_database(self):
-        conn = sqlite3.connect(self.db_name)
-        conn.close()
-
-    def create_table(self, df: pd.DataFrame, table_name: str):
-        with sqlite3.connect(self.db_name) as conn:
-            df.to_sql(table_name, conn, if_exists="replace", index=False)
 
     def _execute_query(self, sql_query: str):
         with sqlite3.connect(self.db_name) as conn:
