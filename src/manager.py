@@ -19,10 +19,14 @@ class Manager:
     def get_report(self, company_name: str):
         if not self.db_manager.is_cached(company_name):
             # Company does not have clusterization yet.
+            # TODO load data from database
             company_comments: pd.DataFrame = self.loader.get_company_comments(company_name)
 
-            self._get_sentiment(company_comments["text"].tolist())
-            self._get_clusters(company_comments)
+            sentiments: pd.DataFrame = self._get_sentiment(company_comments)
+            clusters: pd.DataFrame = self._get_clusters(company_comments)
+
+            self.db_manager.save_sentiment(sentiments)
+            self.db_manager.save_clusters(clusters)
 
         result = self._get_analytics(company_name)
 
@@ -45,10 +49,11 @@ class Manager:
 
         return cluster_df
 
-    def _get_sentiment(self, texts: list[str]):
+    def _get_sentiment(self, company_comments: pd.DataFrame) -> pd.DataFrame:
+        texts = company_comments["text"].tolist()
         all_sentiments, _ = self.sentiment_classifier.predict_sentiment(texts)
 
-        self.db_manager.save_sentiment(all_sentiments)
+        return all_sentiments
 
     def _get_analytics(self, company_name: str):
         data = self.db_manager.get_data_for_analytics(company_name)

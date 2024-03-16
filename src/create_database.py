@@ -38,7 +38,7 @@ if __name__ == "__main__":
         conn.commit()
 
     # Insert data to geo_comments table
-    geo_comments_table = pd.read_json("../data/geo-reviews-dataset-2023.jsonl", lines=True)
+    geo_comments_table = pd.read_json("data/geo-reviews-dataset-2023.jsonl", lines=True)
     geo_comments_table = geo_comments_table[['name_ru', 'address', 'rating', 'rubrics', 'text']]
     geo_comments_table.columns = ['name', 'address', 'rating', 'rubric', 'text']
     geo_comments_table["id"] = geo_comments_table.index
@@ -47,3 +47,5 @@ if __name__ == "__main__":
         cursor = conn.cursor()
         geo_comments_table.to_sql('geo_comments', conn, if_exists='append', index=False)
         conn.commit()
+
+    print("Done!")
