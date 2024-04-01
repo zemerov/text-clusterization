@@ -1,6 +1,5 @@
 import sqlite3
 import pandas as pd
-import json
 from loguru import logger
 
 
@@ -8,48 +7,77 @@ DEFAULT_DATABASE_PATH = "data/database.db"
 
 
 class DatabaseManager:
-    def __init__(self, db_name: str = DEFAULT_DATABASE_PATH, queries_file: str = "resources/queries.json"):
+    def __init__(self, db_name: str = DEFAULT_DATABASE_PATH):
         self.db_name: str = db_name
 
-        with open(queries_file, "r") as file:
-            self.queries: dict[str, str] = json.load(file)
+        self.table_names = {
+            "cluster_descriptions": "clusters",
+            "comments_analytics": "comments_analysis",
+            "comments": "geo_comments"
+        }
 
-    def save_clusters(self, df_clusters: pd.DataFrame, table_name: str, text_table_name: str, text_column_name: str):
-        # Сохраняет информацию о кластерах в базу данных и добавляет cluster_id к текстам в другой таблице
+    def save_to_analysis_table(self, id_to_cluster: dict[int, int], id_to_sentiment: dict[int, str]):
+        assert set(id_to_sentiment.keys()) == set(id_to_cluster.keys())
+        indexes = set(id_to_sentiment.keys())
+
         try:
             with sqlite3.connect(self.db_name) as conn:
-                # Сохраняем информацию о кластерах в отдельную таблицу
-                df_clusters.to_sql(table_name, conn, if_exists="append", index=False)
-                logger.info(f"Clusters data saved to table {table_name} in the database.")
-
-                # Добавляем cluster_id к текстам в другой таблице
                 cursor = conn.cursor()
-                for index, row in df_clusters.iterrows():
-                    cluster_id = row["cluster_id"]
-                    # Используем SQL-запрос для добавления cluster_id к текстам в таблице geo_comments_data
-                    sql_query = f"UPDATE {text_table_name} SET cluster_id = ? WHERE cluster_id IS NULL AND {text_column_name} = ?"
-                    cursor.execute(sql_query, (cluster_id, row["text"]))
-                conn.commit()
-                logger.info(f"Cluster IDs added to table {text_table_name} in the database.")
-        except Exception as e:
-            logger.error(f"An error occurred while saving clusters data: {e}")
 
-    def save_sentiment(self, sentiments: list[str]):
-        pass
+                for idx in indexes:
+                    sql_query = (f'INSERT INTO {self.table_names["comments_analytics"]} '
+                                 f'(id, cluster_id, sentiment) VALUES (?, ?, ?)')
+                    sentiment = id_to_sentiment[idx]
+                    cluster_id = id_to_cluster[idx]
+
+                    cursor.execute(sql_query, (idx, cluster_id, sentiment))
+                conn.commit()
+        except Exception as e:
+            logger.error(f"An error occurred while saving sentiment data: {repr(e)}")
+
+    def save_to_clusters_table(self, cluster_descriptions: pd.DataFrame):
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cluster_descriptions.to_sql("clusters", conn, if_exists="append", index=False)
+        except Exception as e:
+            logger.error(f"An error occurred while saving clusters data: {repr(e)}")
 
     def is_cached(self, company_name: str) -> bool:
         """Check whether clusters were already calculated for given company name"""
-        # check here
-        return False
+        query = f'SELECT COUNT(*) from {self.table_names["cluster_descriptions"]}  WHERE name == "{company_name}";'
 
-    def get_data_for_analytics(self, company_name: str):
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                cursor = conn.cursor()
+                cursor.execute(query)
+
+                num_rows = int(cursor.fetchone()[0])
+        except Exception as e:
+            logger.error(f"An error occurred while checking for cached result: {repr(e)}")
+
+        logger.info(f'Found {num_rows} rows for {company_name} in {self.table_names["cluster_descriptions"]} table.')
+        logger.info(f"is_cached: {num_rows != 0}")
+
+        return num_rows != 0
+
+    def get_data_for_analytics(self, company_name: str) -> pd.DataFrame:
         """Collect data for analysis"""
         # TODO execute query for getting data
 
         return None
 
-    def _execute_query(self, sql_query: str):
-        with sqlite3.connect(self.db_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute(sql_query)
-            conn.commit()
+    def get_company_data(self, company_name: str) -> pd.DataFrame:
+        """Collect data for analysis"""
+        query = f'SELECT * FROM {self.table_names["comments"]} WHERE name = "{company_name}";'
+        logger.info(f"SQL query for getting infi about company: {query}")
+
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                company_data = pd.read_sql_query(query, conn)
+
+                logger.info(f"Collected data from database for company: {company_name}")
+        except Exception as e:
+            logger.error(f"An error occurred while collecting data: {repr(e)}")
+            company_data = pd.DataFrame()
+
+        return company_data

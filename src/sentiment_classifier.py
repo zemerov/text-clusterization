@@ -39,14 +39,14 @@ class SentimentClassifier:
         )
 
     @torch.inference_mode
-    def predict_sentiment(self, texts: list[str]) -> tuple[list[str], list[float]]:
+    def predict_sentiment(self, texts: list[str]) -> tuple[list[str], dict[str: list[float]]]:
         sentiments = []
-        negative_scores = []
+        scores = {sentiment: list() for sentiment in self.SENTIMENT_TO_ID.keys()}
 
         for i in tqdm(
             range(0, len(texts), self.batch_size), desc="Calculating sentiment scores"
         ):
-            texts_batch = texts[i : i + self.batch_size]
+            texts_batch = texts[i:i + self.batch_size]
 
             tokenized_batch = {
                 k: v.to(self.device)
@@ -60,11 +60,15 @@ class SentimentClassifier:
             }
 
             predictions = self.model(**tokenized_batch).logits
-            negative_scores.append(predictions[:, self.SENTIMENT_TO_ID["NEGATIVE"]])
             sentiments.append(predictions.argmax(dim=1))
 
-        negative_scores = torch.cat(negative_scores).tolist()
+            predictions = torch.softmax(predictions, dim=1)
+
+            for sentiment in self.SENTIMENT_TO_ID.keys():
+                scores[sentiment].append(predictions[:, self.SENTIMENT_TO_ID[sentiment]])
+
+        scores = {sentiment: torch.cat(values).tolist() for sentiment, values in scores.items()}
         sentiments = torch.cat(sentiments).tolist()
         sentiments = [self.ID_TO_SENTIMENT[x] for x in sentiments]
 
-        return sentiments, negative_scores
+        return sentiments, scores
