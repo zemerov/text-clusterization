@@ -14,8 +14,8 @@ text VARCHAR);"""
 
 create_comments_analysis = """CREATE TABLE IF NOT EXISTS comments_analysis (
 id INTEGER PRIMARY KEY,
-cluster_id VARCHAR,
-sentiment SMALLINT,
+cluster_id INTEGER,
+sentiment VARCHAR,
 FOREIGN KEY (id) REFERENCES geo_comments(id)
 );"""
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         conn.commit()
 
     # Insert data to geo_comments table
-    geo_comments_table = pd.read_json("data/geo-reviews-dataset-2023.jsonl", lines=True)
+    geo_comments_table = pd.read_json("data/geo-reviews-dataset-2023-full.jsonl", lines=True)
     geo_comments_table = geo_comments_table[['name_ru', 'address', 'rating', 'rubrics', 'text']]
     geo_comments_table.columns = ['name', 'address', 'rating', 'rubric', 'text']
     geo_comments_table["id"] = geo_comments_table.index
