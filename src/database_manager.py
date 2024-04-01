@@ -63,6 +63,7 @@ class DatabaseManager:
     def get_data_for_analytics(self, company_name: str) -> pd.DataFrame:
         """Collect data for analysis"""
         # TODO execute query for getting data
+        # Тут select запросы в том формате, который потом требуется для visualizer.py
 
         return None
 
