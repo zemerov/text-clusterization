@@ -13,7 +13,8 @@ class OpenAIAPIWrapper:
         logger.info(f"Set up OpenAI API wrapper for model {model}")
 
     def _construct_prompt(self, comments: list[str], keywords: str) -> str:
-        prompt = f"""Какие выводы можно сделать по этиму кластеру отзывов пользователей?
+        prompt = f"""Как можно коротко в несколько слов назвать этот кластер отзывов пользователей? 
+        Это название должно отражать мнение клиентов об организации, качестве услуг или недостатках.  
         
         Ключевые слова для кластера: {keywords}
         Отзывы пользователей:
@@ -22,7 +23,7 @@ class OpenAIAPIWrapper:
         for i, x in enumerate(comments):
             prompt += f"{i + 1}. {x.strip()}.\n"
 
-        prompt += "В ответ напиши один ключевой вывод."
+        prompt += "В ответ напиши только название кластера."
 
         return prompt
 
