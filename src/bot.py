@@ -1,6 +1,7 @@
 import os
 from time import sleep
 from loguru import logger
+from manager import Manager
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -22,14 +23,16 @@ TOP_COMPANIES_KEYBOARD = [
 ]
 
 
+analytics_manager = Manager()
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the conversation and asks the user about their gender."""
 
     await update.message.reply_text(
         """Добрый день! 
-        Я бот, помогающий анализировать отзывы, которые люди оставляют на организации! 
-        Напишите название компании, отзывы на которую необходимо проанализировать. 
-        Можно выбрать на клавиатуре или написать название самостоятельно.""",
+    Я бот, помогающий анализировать отзывы, которые люди оставляют на организации! 
+    Напишите название компании, отзывы на которую необходимо проанализировать. 
+    Можно выбрать на клавиатуре или написать название самостоятельно.""",
         reply_markup=ReplyKeyboardMarkup(
             TOP_COMPANIES_KEYBOARD,
             one_time_keyboard=True,
@@ -41,7 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return COMPANY_NAME
 
 
-async def company_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def construct_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
     company_name = update.message.text
     # TODO добавить проверку на наличие компании в датасете
@@ -52,12 +55,16 @@ async def company_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         reply_markup=ReplyKeyboardRemove(),
     )
 
-    # TODO Логика с кластеризацией здесь
-    sleep(2)
+    resulting_file_paths = analytics_manager.get_report(company_name)
+    await update.message.reply_text("Ваш отчет готов!")
 
-    await update.message.reply_text(
-        "[ЗАГЛУШКА КЛАСТЕРИЦАЦИИ]",
-    )
+    for path in resulting_file_paths:
+        if path.suffix == ".png":
+            await update.message.reply_photo(path)
+        elif path.suffix == ".csv":
+            await update.message.reply_document(path)
+        else:
+            logger.warning(f"Unsupported file extension {path.suffix}. Skip file: {path}")
 
     await update.message.reply_text(
         """Теперь вы можете снова написать название компании, отзывы на которую необходимо проанализировать.
@@ -95,7 +102,7 @@ def main() -> None:
         entry_points=[CommandHandler("start", start)],
         states={
             COMPANY_NAME: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, company_name)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, construct_report)
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],

@@ -5,6 +5,8 @@ from clusterizer import Clusterizer
 from openai_api_wrapper import OpenAIAPIWrapper
 from database_manager import DatabaseManager, DEFAULT_DATABASE_PATH
 
+from pathlib import Path
+
 
 class Manager:
     def __init__(self, db_path: str = DEFAULT_DATABASE_PATH):
@@ -59,13 +61,24 @@ class Manager:
 
         return all_sentiments, scores
 
-    def _get_analytics(self, company_name: str):
+    def _get_analytics(self, company_name: str) -> list[Path]:
+        """
+        Create analytics plots, save them to files and return paths to these files
+
+        :param company_name: str name for the company to create analytics
+        :return: list of paths to images and tables
+        """
         data = self.db_manager.get_data_for_analytics(company_name)
 
-        # Create analytics based on data
-        # Save analytics (MAYBE)
-        # Return smth
-        return 2 + 2
+        # TODO place logic for plots creation
+
+        resulting_file_paths = [
+            # TODO replace with actual paths for files
+            Path('resources/example/planet_comments.csv'),
+            Path('resources/example/top_categories_plot.png')
+        ]
+
+        return resulting_file_paths
 
 
 if __name__ == "__main__":
