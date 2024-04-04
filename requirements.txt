@@ -11,3 +11,6 @@ matplotlib
 openai
 python-telegram-bot
 black
+catboost
+wandb
+evaluate
