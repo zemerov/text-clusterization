@@ -1,0 +1,14 @@
+command:
+  - python
+  - experiments/train_catboost.py
+  - ${args}
+method: grid
+parameters:
+  iterations:
+    values: [500, 1000]
+  max_features:
+    values: [5000, 10000]
+  depth:
+    values: [4, 6, 8]
+  learning_rate:
+    values: [0.01, 0.03, 0.07]
