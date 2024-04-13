@@ -60,17 +60,36 @@ class DatabaseManager:
 
         return num_rows != 0
 
-    def get_data_for_analytics(self, company_name: str) -> pd.DataFrame:
-        """Collect data for analysis"""
-        # TODO execute query for getting data
-        # Тут select запросы в том формате, который потом требуется для visualizer.py
+    def _get_data(self, query) -> pd.DataFrame:
+        conn = sqlite3.connect('data/database.db')
+        df = pd.read_sql_query(query, conn)
+        df.reset_index(drop=True, inplace=True)
+        conn.close()
+        return df
+    
+    def get_data_for_analytics(self, company_name: str) -> pd.DataFrames:
+        query_barch = f'''
+            SELECT REPLACE(REPLACE(description, '"', ''), '.', '') AS cluster_topic, 
+            sentiment, count(gc.id) AS count_reviews
+            FROM geo_comments gc
+            JOIN comments_analysis ca ON gc.id = ca.id
+            JOIN clusters c ON ca.cluster_id = c.cluster_id AND gc.name = c.name
+            WHERE gc.name like '{company_name}'
+        GROUP BY description, sentiment '''
+        query_wc = f'''
+            SELECT gc.text AS reviews, sentiment 
+            FROM geo_comments gc
+            LEFT JOIN comments_analysis ca ON ca.id = gc.id
+            WHERE gc.name = {company_name} '''
+        df_barch = self._get_data(query_barch)
+        df_wc = self._get_data(query_wc)
 
-        return None
+        return df_barch, df_wc
 
     def get_company_data(self, company_name: str) -> pd.DataFrame:
         """Collect data for analysis"""
         query = f'SELECT * FROM {self.table_names["comments"]} WHERE name = "{company_name}";'
-        logger.info(f"SQL query for getting infi about company: {query}")
+        logger.info(f"SQL query for getting info about company: {query}")
 
         try:
             with sqlite3.connect(self.db_name) as conn:

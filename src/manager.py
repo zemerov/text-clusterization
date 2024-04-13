@@ -4,7 +4,7 @@ from sentiment_classifier import SentimentClassifier
 from clusterizer import Clusterizer
 from openai_api_wrapper import OpenAIAPIWrapper
 from database_manager import DatabaseManager, DEFAULT_DATABASE_PATH
-
+from visualizer import DataVisualizer
 from pathlib import Path
 
 
@@ -13,7 +13,7 @@ class Manager:
         self.sentiment_classifier = SentimentClassifier()
         self.clusterizer = Clusterizer()
         self.api_wrapper = OpenAIAPIWrapper()
-
+        self.visualizer = DataVisualizer()
         self.db_manager = DatabaseManager(db_name=db_path)
 
     def get_report(self, company_name: str):
@@ -68,14 +68,15 @@ class Manager:
         :param company_name: str name for the company to create analytics
         :return: list of paths to images and tables
         """
-        data = self.db_manager.get_data_for_analytics(company_name)
-
-        # TODO place logic for plots creation
+        df_barch, df_wc = self.db_manager.get_data_for_analytics(company_name)
+        self.visualizer.top_clusters_barplot(df_barch, 15)
+        self.visualizer.words_clouds(df_wc)
 
         resulting_file_paths = [
-            # TODO replace with actual paths for files
-            Path('resources/example/planet_comments.csv'),
-            Path('resources/example/top_categories_plot.png')
+            Path('resources/top_clusters_barplot.png'),
+            Path('resources/wordcloud_sentiment_POSITIVE.png'),
+            Path('resources/wordcloud_sentiment_NEUTRAL.png'),
+            Path('resources/wordcloud_sentiment_NEGATIVE.png')
         ]
 
         return resulting_file_paths
