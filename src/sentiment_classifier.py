@@ -29,6 +29,8 @@ class SentimentClassifier:
         self.model: PreTrainedModel = (
             AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
         )
+        self.model.eval()
+
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(model_name)
 
         self.batch_size: int = batch_size
@@ -38,7 +40,6 @@ class SentimentClassifier:
             f"Loaded sentiment classifier: {model_name}. Batch size: {batch_size}. Device: {device}"
         )
 
-    @torch.inference_mode
     def predict_sentiment(self, texts: list[str]) -> tuple[list[str], dict[str: list[float]]]:
         sentiments = []
         scores = {sentiment: list() for sentiment in self.SENTIMENT_TO_ID.keys()}
