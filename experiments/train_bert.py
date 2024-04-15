@@ -1,11 +1,4 @@
 import datasets
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from catboost import CatBoostClassifier
-
-from sklearn.metrics import f1_score
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score
 import numpy as np
 
 from argparse import ArgumentParser, Namespace
@@ -24,6 +17,8 @@ def parse_arguments() -> Namespace:
     parser.add_argument("--adam_beta2", type=float, default=0.999)
     parser.add_argument("--warmup_steps", type=int, default=0)
     parser.add_argument("--random_seed", type=int, default=1234)
+    parser.add_argument("--per_device_train_batch_size", type=int, default=64)
+    parser.add_argument("--per_device_eval_batch_size", type=int, default=64)
 
     return parser.parse_args()
 
@@ -55,7 +50,7 @@ if __name__ == "__main__":
         predictions = np.argmax(logits, axis=-1)
         return f1_score_metric.compute(predictions=predictions, references=labels, average="macro")
 
-    model = AutoModelForSequenceClassification.from_pretrained("deepvk/bert-base-uncased")
+    model = AutoModelForSequenceClassification.from_pretrained("deepvk/bert-base-uncased", num_labels=3)
     tokenizer = AutoTokenizer.from_pretrained("deepvk/bert-base-uncased")
 
     training_args = TrainingArguments(
@@ -63,15 +58,16 @@ if __name__ == "__main__":
         evaluation_strategy="epoch",
         save_strategy="epoch",
         num_train_epochs=3,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
+        per_device_train_batch_size=args.per_device_train_batch_size,
+        per_device_eval_batch_size=args.per_device_eval_batch_size,
         fp16=True,
         load_best_model_at_end=True,
         save_total_limit=1,
         learning_rate=args.learning_rate,
         adam_beta1=args.adam_beta1,
         adam_beta2=args.adam_beta2,
-        warmup_steps=args.warmup_steps
+        warmup_steps=args.warmup_steps,
+        logging_steps=300
     )
 
     ds["train"] = ds["train"].rename_column("sentiment", "label")

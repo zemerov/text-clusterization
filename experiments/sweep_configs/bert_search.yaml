@@ -1,6 +1,8 @@
 command:
   - python
   - experiments/train_bert.py
+  - --per_device_train_batch_size
+  - 48
   - ${args}
 method: grid
 parameters:

@@ -1,0 +1,16 @@
+command:
+  - python
+  - experiments/train_catboost.py
+  - --iterations
+  - 1000
+  - --max_features
+  - 10000
+  - --depth
+  - 8
+  - --learning_rate
+  - 0.07
+  - ${args}
+method: grid
+parameters:
+  random_seed:
+    values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
