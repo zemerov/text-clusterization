@@ -16,3 +16,4 @@ wandb
 evaluate
 wordcloud
 openai
+kaleido

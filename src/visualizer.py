@@ -1,4 +1,3 @@
-import seaborn as sns
 import matplotlib.pyplot as plt
 from wordcloud import STOPWORDS, WordCloud
 import plotly.io as pio
@@ -6,15 +5,18 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import random
+import numpy as np
+from pathlib import Path
+import pandas as pd
 
-DEFAULT_DATABASE_PATH = "'resources/'"
+DEFAULT_DATABASE_PATH = Path("resources")
+
 
 class DataVisualizer:
-    def __init__(self, company_name, plots_path: str = DEFAULT_DATABASE_PATH):
-        self.plots_path : str = plots_path
-        self.company_name = company_name
+    def __init__(self, plots_path: Path = DEFAULT_DATABASE_PATH):
+        self.plots_path: Path = plots_path
 
-    def top_clusters_barplot(self, df, top=15):
+    def top_clusters_barplot(self, df: pd.DataFrame, top=15):
         pivot_df = df.pivot_table(index='cluster_topic', columns='sentiment', values='count_reviews', aggfunc='sum', fill_value=0)
         pivot_df['total_reviews'] = pivot_df.sum(axis=1)
         pivot_df = pivot_df.sort_values(by='total_reviews', ascending=False)[:top]
@@ -49,20 +51,24 @@ class DataVisualizer:
         ax.set_xlabel('Number of reviews')
         ax.set_ylabel('')
         plt.title(f'Top {top} reviews categories', fontweight='bold', loc='left', fontsize=12)
-        filename = self.plots_path + 'top_clusters_barplot.png'
-        plt.savefig(filename)
 
-    def words_clouds(self, df):
-        text = " ".join(review for review in df['reviews'])
+        plt.savefig(self.plots_path / 'top_clusters_barplot.png')
+
+    def words_clouds(self, df: pd.DataFrame):
         stopwords = set(STOPWORDS)
         stopwords.update(["есть", 'может'])
         
         # Создаем отдельные облака слов для каждого уникального значения столбца sentiment
         unique_sentiments = df['sentiment'].unique()
-        colors = {'POSITIVE': px.colors.sequential.algae, 'NEUTRAL': px.colors.sequential.Mint, 'NEGATIVE': px.colors.sequential.Reds}
+        colors = {
+            'POSITIVE': px.colors.sequential.algae,
+            'NEUTRAL': px.colors.sequential.Mint,
+            'NEGATIVE': px.colors.sequential.Reds
+        }
+
         for sentiment_value in unique_sentiments:
             sentiment_df = df[df['sentiment'] == sentiment_value]
-            sentiment_text = " ".join(review for review in sentiment_df[column])
+            sentiment_text = " ".join(sentiment_df['reviews'].tolist())
             wordcloud = WordCloud(
                 stopwords=stopwords,
                 background_color="white",
@@ -97,6 +103,4 @@ class DataVisualizer:
                 yaxis=dict(showticklabels=False)
             )
             # сохраняем каждый график в виде изображения
-            file_name = self.plots_path + f'wordcloud_sentiment_{sentiment_value}.png'
-            pio.write_image(fig, file_name)
-
+            pio.write_image(fig, self.plots_path / f'wordcloud_sentiment_{sentiment_value}.png')

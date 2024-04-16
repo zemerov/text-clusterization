@@ -67,7 +67,7 @@ class DatabaseManager:
         conn.close()
         return df
     
-    def get_data_for_analytics(self, company_name: str) -> pd.DataFrames:
+    def get_data_for_analytics(self, company_name: str) -> (pd.DataFrame, pd.DataFrame):
         query_barch = f'''
             SELECT REPLACE(REPLACE(description, '"', ''), '.', '') AS cluster_topic, 
             sentiment, count(gc.id) AS count_reviews
@@ -80,7 +80,7 @@ class DatabaseManager:
             SELECT gc.text AS reviews, sentiment 
             FROM geo_comments gc
             LEFT JOIN comments_analysis ca ON ca.id = gc.id
-            WHERE gc.name = {company_name} '''
+            WHERE gc.name = "{company_name}" '''
         df_barch = self._get_data(query_barch)
         df_wc = self._get_data(query_wc)
 
