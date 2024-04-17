@@ -68,7 +68,7 @@ class DatabaseManager:
         return df
     
     def get_data_for_analytics(self, company_name: str) -> (pd.DataFrame, pd.DataFrame):
-        query_barch = f'''
+        query_clusters = f'''
             SELECT REPLACE(REPLACE(description, '"', ''), '.', '') AS cluster_topic, 
             sentiment, count(gc.id) AS count_reviews
             FROM geo_comments gc
@@ -80,11 +80,29 @@ class DatabaseManager:
             SELECT gc.text AS reviews, sentiment 
             FROM geo_comments gc
             LEFT JOIN comments_analysis ca ON ca.id = gc.id
-            WHERE gc.name = "{company_name}" '''
-        df_barch = self._get_data(query_barch)
+            WHERE gc.name like '{company_name}' '''
+        query_sentiment = f'''
+            SELECT sentiment, count(gc.text) AS "count" 
+            FROM geo_comments gc
+            LEFT JOIN comments_analysis ca ON ca.id = gc.id
+            WHERE gc.name like '{company_name}'
+            GROUP BY sentiment
+            order by count desc'''
+        query_region = f'''
+            SELECT trim(substr(address, 1, instr(address, ',') - 1)) AS address_part,
+            sentiment,
+            count(gc.text) AS "count" 
+            FROM geo_comments gc
+            LEFT JOIN comments_analysis ca ON ca.id = gc.id
+            WHERE gc.name like '{company_name}'
+            GROUP BY address_part, sentiment
+            ORDER BY count DESC'''
+        df_clusters = self._get_data(query_clusters)
+        df_sentiment = self._get_data(query_sentiment)
         df_wc = self._get_data(query_wc)
+        df_region = self._get_data(query_region)
 
-        return df_barch, df_wc
+        return df_clusters, df_wc, df_sentiment, df_region
 
     def get_company_data(self, company_name: str) -> pd.DataFrame:
         """Collect data for analysis"""

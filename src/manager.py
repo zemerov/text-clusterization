@@ -68,15 +68,19 @@ class Manager:
         :param company_name: str name for the company to create analytics
         :return: list of paths to images and tables
         """
-        df_barch, df_wc = self.db_manager.get_data_for_analytics(company_name)
-        self.visualizer.top_clusters_barplot(df_barch, 15)
+        df_clusters, df_wc, df_sentiment, df_region = self.db_manager.get_data_for_analytics(company_name)
+        self.visualizer.top_barplot(df_clusters, 15)
+        self.visualizer.ver_bar_chart(df_sentiment)
+        self.visualizer.top_barplot(df_region, x='count', y='address_part', top=15, title_tale='regions', x_title='Number_of_reviews', file_name='top_regions_barplot')
         self.visualizer.words_clouds(df_wc)
 
         resulting_file_paths = [
             Path('resources/top_clusters_barplot.png'),
             Path('resources/wordcloud_sentiment_POSITIVE.png'),
             Path('resources/wordcloud_sentiment_NEUTRAL.png'),
-            Path('resources/wordcloud_sentiment_NEGATIVE.png')
+            Path('resources/wordcloud_sentiment_NEGATIVE.png'),
+            Path('resources/top_regions_barplot.png'),
+            Path('resources/sentiments_barplot.png')
         ]
 
         return resulting_file_paths
