@@ -69,9 +69,9 @@ class Manager:
         :return: list of paths to images and tables
         """
         df_clusters, df_wc, df_sentiment, df_region = self.db_manager.get_data_for_analytics(company_name)
-        self.visualizer.top_barplot(df_clusters, 15)
+        self.visualizer.top_barplot(df_clusters)
         self.visualizer.ver_bar_chart(df_sentiment)
-        self.visualizer.top_barplot(df_region, x='count', y='address_part', top=15, title_tale='regions', x_title='Number_of_reviews', file_name='top_regions_barplot')
+        self.visualizer.top_barplot(df_region, x='count', y='address_part', top=15, title_tale='regions', x_title='Number_of_reviews', file_name='top_regions_barplot.png')
         self.visualizer.words_clouds(df_wc)
 
         resulting_file_paths = [
