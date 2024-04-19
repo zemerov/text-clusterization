@@ -59,12 +59,15 @@ async def construct_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await update.message.reply_text("Ваш отчет готов!")
 
     for path in resulting_file_paths:
-        if path.suffix == ".png":
-            await update.message.reply_photo(path)
-        elif path.suffix == ".csv":
-            await update.message.reply_document(path)
-        else:
-            logger.warning(f"Unsupported file extension {path.suffix}. Skip file: {path}")
+        with open(path, 'rb') as file:
+            if path.suffix == ".png":
+                await update.message.reply_photo(file)
+            elif path.suffix == ".csv":
+                await update.message.reply_document(file)
+            else:
+                logger.warning(f"Unsupported file extension {path.suffix}. Skip file: {path}")
+
+
 
     await update.message.reply_text(
         """Теперь вы можете снова написать название компании, отзывы на которую необходимо проанализировать.

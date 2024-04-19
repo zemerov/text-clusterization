@@ -26,6 +26,10 @@ class DataVisualizer:
                                     x_title = 'Number of reviews', 
                                     file_name = 'top_clusters_barplot.png'):
         
+        if (self.plots_path / file_name).exists():
+            print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
+            return
+
         pivot_df = df.pivot_table(index=y, columns='sentiment', values=x, aggfunc='sum', fill_value=0)
         pivot_df['total_reviews'] = pivot_df.sum(axis=1)
         pivot_df = pivot_df.sort_values(by='total_reviews', ascending=False)[:top]
@@ -71,6 +75,10 @@ class DataVisualizer:
                              title='Reviews by sentiment', 
                              top=None, 
                              file_name = 'sentiments_barplot.png'):
+        
+        if (self.plots_path / file_name).exists():
+            print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
+            return
         sns.set_style("white")
         fig, ax = plt.subplots(figsize=(6, 4))
         if top is not None:
@@ -102,6 +110,10 @@ class DataVisualizer:
         }
 
         for sentiment_value in unique_sentiments:
+            file_name = f'wordcloud_sentiment_{sentiment_value}.png'
+            if (self.plots_path / file_name).exists():
+                print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
+                continue  # Пропускаем создание графика
             sentiment_df = df[df['sentiment'] == sentiment_value]
             sentiment_text = " ".join(sentiment_df['reviews'].tolist())
             wordcloud = WordCloud(

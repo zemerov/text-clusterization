@@ -80,7 +80,8 @@ class DatabaseManager:
             SELECT gc.text AS reviews, sentiment 
             FROM geo_comments gc
             LEFT JOIN comments_analysis ca ON ca.id = gc.id
-            WHERE gc.name like '{company_name}' '''
+            WHERE gc.name like '{company_name}'
+            and sentiment is not null '''
         query_sentiment = f'''
             SELECT sentiment, count(gc.text) AS "count" 
             FROM geo_comments gc
