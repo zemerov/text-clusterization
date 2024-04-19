@@ -86,6 +86,7 @@ class DatabaseManager:
             FROM geo_comments gc
             LEFT JOIN comments_analysis ca ON ca.id = gc.id
             WHERE gc.name like '{company_name}'
+            and sentiment is not null
             GROUP BY sentiment
             order by count desc'''
         query_region = f'''
