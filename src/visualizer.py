@@ -25,16 +25,12 @@ class DataVisualizer:
                                     title_tale = 'reviews categories', 
                                     x_title = 'Number of reviews', 
                                     file_name = 'top_clusters_barplot.png'):
-        
-        if (self.plots_path / file_name).exists():
-            print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
-            return
 
         pivot_df = df.pivot_table(index=y, columns='sentiment', values=x, aggfunc='sum', fill_value=0)
         pivot_df['total_reviews'] = pivot_df.sum(axis=1)
         pivot_df = pivot_df.sort_values(by='total_reviews', ascending=False)[:top]
         pivot_df.drop(columns='total_reviews', inplace=True)
-        colors = {'POSITIVE': 'green', 'NEUTRAL': 'cyan', 'NEGATIVE': 'red'}
+        colors = {'POSITIVE': '#77DD77', 'NEUTRAL': '#FFD166', 'NEGATIVE': '#FF6961'}   
         pivot_df = pivot_df.reindex(pivot_df.index[::-1])
         fig, ax = plt.subplots(figsize=(12, 10))
         left = np.zeros(len(pivot_df))
@@ -76,16 +72,13 @@ class DataVisualizer:
                              top=None, 
                              file_name = 'sentiments_barplot.png'):
         
-        if (self.plots_path / file_name).exists():
-            print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
-            return
         sns.set_style("white")
         fig, ax = plt.subplots(figsize=(6, 4))
         if top is not None:
             df = df.nlargest(top, 'count')
         categories = df['sentiment']
         counts = df['count']
-        colors = {'POSITIVE': 'green', 'NEUTRAL': 'cyan', 'NEGATIVE': 'red'}
+        colors = {'POSITIVE': '#77DD77', 'NEUTRAL': '#FFD166', 'NEGATIVE': '#FF6961'}  
         palette = [colors[sentiment] for sentiment in categories]
         ax = sns.barplot(x=categories, y=counts, palette=palette)
         for i, count in enumerate(counts):
