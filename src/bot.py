@@ -29,10 +29,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the conversation and asks the user about their gender."""
 
     await update.message.reply_text(
-        """Добрый день! 
-    Я бот, помогающий анализировать отзывы, которые люди оставляют на организации! 
-    Напишите название компании, отзывы на которую необходимо проанализировать. 
-    Можно выбрать на клавиатуре или написать название самостоятельно.""",
+        """Добрый день!
+Я бот, помогающий анализировать отзывы, которые люди оставляют на организации! 
+Напишите название компании, отзывы на которую необходимо проанализировать. 
+Можно выбрать на клавиатуре или написать название самостоятельно.""",
         reply_markup=ReplyKeyboardMarkup(
             TOP_COMPANIES_KEYBOARD,
             one_time_keyboard=True,
@@ -71,7 +71,7 @@ async def construct_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     await update.message.reply_text(
         """Теперь вы можете снова написать название компании, отзывы на которую необходимо проанализировать.
-        Можно выбрать на клавиатуре или написать название самостоятельно.""",
+Можно выбрать на клавиатуре или написать название самостоятельно.""",
         reply_markup=ReplyKeyboardMarkup(
             TOP_COMPANIES_KEYBOARD,
             one_time_keyboard=True,
