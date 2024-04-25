@@ -104,9 +104,6 @@ class DataVisualizer:
 
         for sentiment_value in unique_sentiments:
             file_name = f'wordcloud_sentiment_{sentiment_value}.png'
-            if (self.plots_path / file_name).exists():
-                print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
-                continue  # Пропускаем создание графика
             sentiment_df = df[df['sentiment'] == sentiment_value]
             sentiment_text = " ".join(sentiment_df['reviews'].tolist())
             wordcloud = WordCloud(
