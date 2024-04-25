@@ -30,7 +30,7 @@ class DataVisualizer:
         pivot_df['total_reviews'] = pivot_df.sum(axis=1)
         pivot_df = pivot_df.sort_values(by='total_reviews', ascending=False)[:top]
         pivot_df.drop(columns='total_reviews', inplace=True)
-        colors = {'POSITIVE': 'green', 'NEUTRAL': 'cyan', 'NEGATIVE': 'red'}
+        colors = {'POSITIVE': '#77DD77', 'NEUTRAL': '#FFD166', 'NEGATIVE': '#FF6961'}   
         pivot_df = pivot_df.reindex(pivot_df.index[::-1])
         fig, ax = plt.subplots(figsize=(12, 10))
         left = np.zeros(len(pivot_df))
@@ -71,13 +71,14 @@ class DataVisualizer:
                              title='Reviews by sentiment', 
                              top=None, 
                              file_name = 'sentiments_barplot.png'):
+        
         sns.set_style("white")
         fig, ax = plt.subplots(figsize=(6, 4))
         if top is not None:
             df = df.nlargest(top, 'count')
         categories = df['sentiment']
         counts = df['count']
-        colors = {'POSITIVE': 'green', 'NEUTRAL': 'cyan', 'NEGATIVE': 'red'}
+        colors = {'POSITIVE': '#77DD77', 'NEUTRAL': '#FFD166', 'NEGATIVE': '#FF6961'}  
         palette = [colors[sentiment] for sentiment in categories]
         ax = sns.barplot(x=categories, y=counts, palette=palette)
         for i, count in enumerate(counts):
@@ -103,6 +104,9 @@ class DataVisualizer:
 
         for sentiment_value in unique_sentiments:
             file_name = f'wordcloud_sentiment_{sentiment_value}.png'
+            if (self.plots_path / file_name).exists():
+                print(f"A file with the name {file_name} already exists in the specified directory. Skipping creation.")
+                continue  # Пропускаем создание графика
             sentiment_df = df[df['sentiment'] == sentiment_value]
             sentiment_text = " ".join(sentiment_df['reviews'].tolist())
             wordcloud = WordCloud(
