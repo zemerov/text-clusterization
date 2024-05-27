@@ -1,0 +1,18 @@
+command:
+  - python
+  - experiments/train_bert.py
+  - --per_device_train_batch_size
+  - 48
+  - --learning_rate
+  - 0.0001
+  - --adam_beta1
+  - 0.99
+  - --adam_beta2
+  - 0.999
+  - --warmup_steps
+  - 2000
+  - ${args}
+method: grid
+parameters:
+  random_seed:
+    values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
